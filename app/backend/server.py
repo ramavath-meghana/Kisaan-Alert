@@ -42,6 +42,7 @@ class AdvisoryRecord(BaseModel):
     diagnosis: str
     advisory_en: str
     advisory_te: str
+    advisory_hi: str = ""
     severity: str
     crop: Optional[str] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
@@ -49,7 +50,7 @@ class AdvisoryRecord(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
-    language: str = "en"  # 'en' | 'te'
+    language: str = "en"  # 'en' | 'te' | 'hi'
 
 
 # ---------- Helpers ----------
@@ -61,7 +62,8 @@ SYSTEM_PROMPT = (
     "diagnosis (string, 1-2 sentences describing the health issue or observation), "
     "severity (string, one of: 'Low', 'Medium', 'High'), "
     "advisory_en (string, 3-5 short actionable steps as one plain paragraph in simple English suitable for low-literacy farmers, no markdown), "
-    "advisory_te (string, the same advisory translated into natural Telugu script). "
+    "advisory_te (string, the same advisory translated into natural Telugu script), "
+    "advisory_hi (string, the same advisory translated into natural Hindi script). "
     "Do not include any text outside the JSON. Do not use markdown fences."
 )
 
@@ -120,6 +122,7 @@ async def _run_gemini(user_text: str, image_bytes: Optional[bytes] = None, image
         "severity": parsed.get("severity", "Medium"),
         "advisory_en": parsed.get("advisory_en", ""),
         "advisory_te": parsed.get("advisory_te", ""),
+        "advisory_hi": parsed.get("advisory_hi", ""),
     }
 
 
@@ -158,6 +161,7 @@ async def diagnose_image(
         diagnosis=result["diagnosis"],
         advisory_en=result["advisory_en"],
         advisory_te=result["advisory_te"],
+        advisory_hi=result.get("advisory_hi", ""),
         severity=result["severity"],
         crop=result["crop"],
     )
@@ -184,6 +188,7 @@ async def ask_question(body: AskRequest):
         diagnosis=result["diagnosis"],
         advisory_en=result["advisory_en"],
         advisory_te=result["advisory_te"],
+        advisory_hi=result.get("advisory_hi", ""),
         severity=result["severity"],
         crop=result["crop"],
     )
